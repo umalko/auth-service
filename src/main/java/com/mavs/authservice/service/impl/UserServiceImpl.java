@@ -2,12 +2,17 @@ package com.mavs.authservice.service.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.mavs.activity.model.Activity;
+import com.mavs.activity.model.ActivityType;
+import com.mavs.activity.provider.ActivityMessageQueueProvider;
+import com.mavs.activity.service.ActivityService;
+import com.mavs.activity.util.ActivityUtil;
+import com.mavs.authservice.dto.ActivityUserDto;
 import com.mavs.authservice.dto.RegisterUserDto;
 import com.mavs.authservice.exception.ResourceWasNotSavedException;
 import com.mavs.authservice.model.Authority;
 import com.mavs.authservice.model.SecurityUserDetails;
 import com.mavs.authservice.model.User;
-import com.mavs.authservice.provider.MessageQueueProvider;
 import com.mavs.authservice.repository.UserRepository;
 import com.mavs.authservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -29,14 +34,16 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final MessageQueueProvider messageQueueProvider;
+    private final ActivityService<User> activityService;
+    private final ActivityMessageQueueProvider activityMessageQueueProvider;
 
     @Autowired
     private BCryptPasswordEncoder encoder;
 
-    public UserServiceImpl(UserRepository userRepository, MessageQueueProvider messageQueueProvider) {
+    public UserServiceImpl(UserRepository userRepository, ActivityService<User> activityService, ActivityMessageQueueProvider activityMessageQueueProvider) {
         this.userRepository = userRepository;
-        this.messageQueueProvider = messageQueueProvider;
+        this.activityService = activityService;
+        this.activityMessageQueueProvider = activityMessageQueueProvider;
     }
 
     @Override
@@ -66,14 +73,8 @@ public class UserServiceImpl implements UserService {
         user.getSecurityUserDetails().setPassword(encoder.encode(user.getSecurityUserDetails().getPassword()));
         User savedUser = userRepository.save(user);
 
-//        messageQueueProvider.sendToUserTopic(savedUser);
+        processNewUserActivity(savedUser);
         return Optional.of(savedUser);
-    }
-
-    @Override
-    public boolean isUserPasswordValid(String userPassword, String encryptedPassword) {
-//        return new BasicPasswordEncryptor().checkPassword(userPassword, encryptedPassword);
-        return true;
     }
 
     @Override
@@ -93,7 +94,6 @@ public class UserServiceImpl implements UserService {
 
     private String encryptPassword(String password) {
         return password;
-//        return new BCryptPasswordEncoder().encode(password);
     }
 
     private User transformToUser(RegisterUserDto registerUserDto) {
@@ -106,5 +106,21 @@ public class UserServiceImpl implements UserService {
                                 .password(encryptPassword(registerUserDto.getPassword()))
                                 .authorities(Sets.newHashSet(Authority.USER, Authority.ADMIN))
                                 .build()).build();
+    }
+
+    private void processNewUserActivity(User savedUser) {
+        ActivityUtil.buildActivity(buildActivityUserDto(savedUser), ActivityType.USER).ifPresent(activity -> {
+            Activity savedActivity = activityService.save(activity);
+            activityMessageQueueProvider.produceActivity(savedActivity);
+        });
+    }
+
+    private ActivityUserDto buildActivityUserDto(User savedUser) {
+        return ActivityUserDto.builder()
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .phone(savedUser.getPhone())
+                .username(savedUser.getUsername())
+                .build();
     }
 }
