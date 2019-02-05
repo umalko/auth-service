@@ -1,0 +1,8 @@
+---
+applications:
+- name: auth-service
+  memory: 700M
+  instances: 2
+  path: /target/
+  env:
+   username: admin
