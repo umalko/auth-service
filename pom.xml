@@ -95,7 +95,7 @@
         <!-- custom libs -->
         <dependency>
             <groupId>com.mavs</groupId>
-            <artifactId>activity-jpa-lib</artifactId>
+            <artifactId>activity-lib</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 

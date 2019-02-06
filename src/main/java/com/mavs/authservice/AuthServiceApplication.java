@@ -11,9 +11,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 @EnableEurekaClient
 @SpringBootApplication
-@ComponentScan({"com.mavs"})
-@EntityScan("com.mavs")
-@EnableJpaRepositories("com.mavs")
+@ComponentScan({"com.mavs.activity.provider.*", "com.mavs.authservice.*"})
+@EntityScan("com.mavs.authservice.*")
+@EnableJpaRepositories("com.mavs.authservice.*")
 public class AuthServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(AuthServiceApplication.class, args);

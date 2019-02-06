@@ -6,21 +6,25 @@ import com.mavs.activity.model.Activity;
 import com.mavs.activity.model.ActivityProcessType;
 import com.mavs.activity.model.ActivityType;
 import com.mavs.activity.provider.ActivityMessageQueueProvider;
-import com.mavs.activity.service.ActivityService;
 import com.mavs.activity.util.ActivityUtil;
 import com.mavs.authservice.model.User;
+import com.mavs.authservice.model.UserActivity;
 import com.mavs.authservice.service.AuthActivityService;
+import com.mavs.authservice.service.UserActivityService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+
 @Service
+@Transactional
 public class AuthActivityServiceImpl implements AuthActivityService {
 
-    private final ActivityService activityService;
+    private final UserActivityService userActivityService;
     private final ActivityMessageQueueProvider activityMessageQueueProvider;
 
-    public AuthActivityServiceImpl(ActivityService activityService, ActivityMessageQueueProvider activityMessageQueueProvider) {
-        this.activityService = activityService;
+    public AuthActivityServiceImpl(UserActivityService userActivityService, ActivityMessageQueueProvider activityMessageQueueProvider) {
+        this.userActivityService = userActivityService;
         this.activityMessageQueueProvider = activityMessageQueueProvider;
     }
 
@@ -29,12 +33,12 @@ public class AuthActivityServiceImpl implements AuthActivityService {
     public void processNewUserActivity(User savedUser) {
         ActivityUserDto activityUserDto = buildActivityUserDto(savedUser);
         ActivityUtil.buildActivity(activityUserDto, ActivityType.USER).ifPresent(activity -> {
-            Activity savedActivity = activityService.save(activity);
+            Activity savedActivity = userActivityService.save(new UserActivity(activity));
             ActivityDto activityDto = ActivityUtil.buildActivityDto(savedActivity, activityUserDto);
             activityMessageQueueProvider.produceActivity(activityDto);
 
             savedActivity.setProcessType(ActivityProcessType.SENT);
-            activityService.update(savedActivity);
+            userActivityService.update(new UserActivity(savedActivity));
         });
     }
 
