@@ -15,6 +15,8 @@ public interface UserService {
 
     Optional<User> findByName(String name);
 
+    Optional<User> findByEmail(String email);
+
     Optional<User> registerNewUser(RegisterUserDto user);
 
     void update(User user);

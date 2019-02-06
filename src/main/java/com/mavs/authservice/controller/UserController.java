@@ -45,6 +45,11 @@ public class UserController {
         return transformUserOptionalModelToDto(userService.findByName(username));
     }
 
+    @GetMapping("/email/{email}")
+    public ResponseUserDto findByEmail(@PathVariable("email") String email) {
+        return transformUserOptionalModelToDto(userService.findByEmail(email));
+    }
+
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public void update(@RequestBody User user) {
@@ -53,7 +58,6 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public void delete(@PathVariable("id") Integer id) {
         userService.delete(id);
     }

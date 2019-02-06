@@ -57,8 +57,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
     public Optional<User> registerNewUser(RegisterUserDto registerUserDto) {
-        if (userRepository.findByUsername(registerUserDto.getUsername()).isPresent()) {
+        if (userRepository.findByUsername(registerUserDto.getUsername()).isPresent() ||
+                userRepository.findByEmail(registerUserDto.getEmail()).isPresent()) {
             throw new ResourceWasNotSavedException();
         }
 
