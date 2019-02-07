@@ -7,7 +7,6 @@ import com.mavs.authservice.model.User;
 import com.mavs.authservice.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -22,15 +21,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    @Value("${app.users.key:default}")
-    private String mySecret;
-
     @Autowired
     private UserService userService;
 
     @GetMapping
     public List<ResponseUserDto> findAll() {
-        log.warn("-----mySecret: {}", mySecret);
         return userService.findAll().stream().map(this::transformUserModelToDto).collect(Collectors.toList());
     }
 
