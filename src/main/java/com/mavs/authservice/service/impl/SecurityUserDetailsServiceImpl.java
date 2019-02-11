@@ -6,7 +6,6 @@ import com.mavs.authservice.service.SecurityUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class SecurityUserDetailsServiceImpl implements SecurityUserDetailsService {
 
     private final SecurityUserDetailsRepository securityUserDetailsRepository;
-
-    @Autowired
-    private BCryptPasswordEncoder encoder;
 
     @Autowired
     public SecurityUserDetailsServiceImpl(SecurityUserDetailsRepository securityUserDetailsRepository) {
@@ -37,7 +33,6 @@ public class SecurityUserDetailsServiceImpl implements SecurityUserDetailsServic
 
     @Override
     public SecurityUserDetails save(SecurityUserDetails userDetails) {
-        userDetails.setPassword(encoder.encode(userDetails.getPassword()));
         return securityUserDetailsRepository.save(userDetails);
     }
 }
